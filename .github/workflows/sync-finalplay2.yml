@@ -1,23 +1,20 @@
 name: Sync Finalplay2
 
 on:
-  workflow_dispatch:   # bisa jalan manual
+  workflow_dispatch:   # bisa dijalankan manual
   schedule:
-    - cron: "0 * * * *"   # auto jalan tiap jam
+    - cron: "0 * * * *"   # jalan tiap 1 jam sekali (UTC)
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      # ⬇️ Checkout repo baru (WAJIB skip submodules biar gak error .gitmodules)
-      - name: Checkout repo baru
+      # Checkout repo baru (target)
+      - name: Checkout repository baru
         uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          submodules: false
 
-      # ⬇️ Setup SSH untuk akses repo lama
+      # Setup SSH supaya bisa akses repo lama pakai deploy key
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -25,15 +22,19 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      # ⬇️ Ambil file Finalplay2.m3u dari repo lama
-      - name: Copy Finalplay2.m3u dari repo lama
+      # Pastikan folder scripts ada di repo baru
+      - name: Buat folder scripts
+        run: mkdir -p scripts
+
+      # Clone repo lama dan copy file Finalplay2.m3u
+      - name: Ambil Finalplay2.m3u dari repo lama
         run: |
           git clone git@github.com:rafkichanel/my-iptv-playlist.git --depth=1 --filter=blob:none temp-repo
           cp temp-repo/scripts/Finalplay2.m3u scripts/Finalplay2.m3u
           rm -rf temp-repo
 
-      # ⬇️ Commit & push ke repo baru
-      - name: Commit & Push
+      # Commit & push perubahan ke repo baru
+      - name: Commit dan Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
