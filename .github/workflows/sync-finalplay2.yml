@@ -1,1 +1,38 @@
-file.github/workflows/sync-finalplay2.yml:
+name: Sync Finalplay2 from Old Repo
+
+on:
+  workflow_dispatch:   # bisa jalan manual
+  schedule:
+    - cron: "0 * * * *"   # opsional: jalan tiap jam
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo baru
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup SSH untuk akses repo lama
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.OLD_REPO_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Clone repo lama (hanya folder finalplay2)
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse git@github.com:rafkichanel/my-iptv-playlist.git oldrepo
+          cd oldrepo
+          git sparse-checkout set scripts/finalplay2
+          cd ..
+          rsync -av oldrepo/scripts/finalplay2/ scripts/
+
+      - name: Commit & Push ke repo baru
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scripts/
+          git commit -m "Auto-sync finalplay2 from old repo" || echo "No changes to commit"
+          git push
