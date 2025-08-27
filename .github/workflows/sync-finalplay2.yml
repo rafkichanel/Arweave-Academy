@@ -1,18 +1,19 @@
 name: Sync Finalplay2 from Old Repo
 
 on:
-  workflow_dispatch:   # bisa dijalankan manual
+  workflow_dispatch:   # Bisa dijalankan manual dari tab Actions
   schedule:
-    - cron: "0 * * * *"   # opsional: jalan tiap jam
+    - cron: "0 * * * *"   # Opsional: jalan otomatis tiap jam
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo baru
+      - name: Checkout repo baru (skip submodules)
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          submodules: false   # 🔥 penting biar ga error submodule
 
       - name: Setup SSH untuk akses repo lama
         run: |
