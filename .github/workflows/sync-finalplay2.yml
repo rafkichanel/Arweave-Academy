@@ -1,7 +1,7 @@
 name: Sync Finalplay2 from Old Repo
 
 on:
-  workflow_dispatch:   # bisa jalan manual
+  workflow_dispatch:   # bisa dijalankan manual
   schedule:
     - cron: "0 * * * *"   # opsional: jalan tiap jam
 
